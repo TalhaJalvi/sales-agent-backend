@@ -63,7 +63,7 @@ Company (1) ──── (*) Product
 
 ```bash
 # Clone the repo
-git clone https://github.com/<your-username>/sales-agent-backend.git
+git clone https://github.com/TalhaJalvi/sales-agent-backend.git
 cd sales-agent-backend
 
 # Install dependencies
