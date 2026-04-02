@@ -25,8 +25,8 @@ class Person(BaseModel):
     id: int
     company_id: int
     name: str
-    title: str | None = None
-    email: str | None = None
+    title: str
+    email: str
     linkedin_url: str | None = None
     role_type: str | None = None
     created_at: datetime

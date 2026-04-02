@@ -8,11 +8,11 @@ from models import Company
 def create_company(
     db: Session,
     name: str,
+    description: str,
+    industry: str,
+    country: str,
+    founded_year: int,
     website: str | None = None,
-    description: str | None = None,
-    industry: str | None = None,
-    country: str | None = None,
-    founded_year: int | None = None,
 ) -> Company:
     company = Company(
         name=name,
