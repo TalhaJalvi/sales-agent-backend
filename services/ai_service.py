@@ -30,6 +30,7 @@ def extract_company_info(raw_text: str, model: str | None = None) -> dict:
 Return ONLY valid JSON with this structure:
 {
     "name": "Company Name",
+    "website": "https://www.company.com",
     "description": "Brief company description",
     "industry": "Industry category",
     "country": "Country",
@@ -38,7 +39,7 @@ Return ONLY valid JSON with this structure:
         {"name": "Product Name", "description": "Brief description"}
     ],
     "people": [
-        {"name": "Person Name", "title": "Job Title", "role_type": "founder|cxo|board|manager"}
+        {"name": "Person Name", "title": "Job Title", "email": "person@company.com", "linkedin_url": "https://linkedin.com/in/...", "role_type": "founder|cxo|board|manager"}
     ]
 }
 
@@ -46,11 +47,45 @@ Rules:
 - founded_year should be null if not found
 - role_type must be one of: founder, cxo, board, manager
 - Only include people whose names and titles are clearly stated
+- For email and linkedin_url: only include if explicitly found in the text. Use null if not found. NEVER make up or guess emails.
+- For website: extract the company's official website URL if mentioned. Use null if not found. Do NOT use the URL of the page being scraped — only the company's own domain.
 - Keep descriptions concise (1-2 sentences)"""
 
     result = _call_llm(system_prompt, raw_text, model)
 
     # Strip markdown code fences if present
+    result = result.strip()
+    if result.startswith("```"):
+        result = result.split("\n", 1)[1]
+        result = result.rsplit("```", 1)[0]
+
+    return json.loads(result)
+
+
+def extract_companies_from_page(raw_text: str, model: str | None = None) -> list[dict]:
+    """Extract multiple companies from a page (e.g. listicle, ranking article)."""
+    system_prompt = """You are a data extraction assistant. The provided text is from a web page that may mention one or more companies. Extract ALL distinct companies mentioned.
+
+Return ONLY valid JSON — an array of objects:
+[
+    {
+        "name": "Company Name",
+        "website": "https://www.company.com",
+        "description": "Brief description (1-2 sentences)",
+        "industry": "Industry category",
+        "country": "Country"
+    }
+]
+
+Rules:
+- Extract every real company mentioned (not the article's own site)
+- website: include the company's official website if mentioned or if it can be inferred from the source URL domain. Use null if truly unknown.
+- Keep descriptions concise
+- If no companies are found, return an empty array []
+- Maximum 10 companies per page"""
+
+    result = _call_llm(system_prompt, raw_text, model)
+
     result = result.strip()
     if result.startswith("```"):
         result = result.split("\n", 1)[1]

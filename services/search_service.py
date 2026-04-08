@@ -1,6 +1,6 @@
 """DuckDuckGo search wrapper."""
 
-from duckduckgo_search import DDGS
+from ddgs import DDGS
 
 
 def search_web(query: str, max_results: int = 10) -> list[dict]:

@@ -39,7 +39,10 @@ def get_companies(db: DbSession, q: str | None = None):
 
 @router.get("/{company_id}", response_model=Company)
 def get_company_by_id(db: DbSession, company_id: int):
-    return get_company(db, company_id)
+    company = get_company(db, company_id)
+    if not company:
+        raise ValueError(f"Company {company_id} not found")
+    return company
 
 
 @router.post("/", response_model=Company, status_code=201)

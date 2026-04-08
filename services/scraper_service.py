@@ -56,8 +56,16 @@ def scrape_website(url: str, company_id: int | None = None) -> dict:
         )
         page = context.new_page()
 
-        # Scrape main page
-        page.goto(url, wait_until="domcontentloaded", timeout=15000)
+        # Scrape main page (retry with different strategies on failure)
+        try:
+            page.goto(url, wait_until="domcontentloaded", timeout=15000)
+        except Exception:
+            # Retry with networkidle and longer timeout
+            try:
+                page.goto(url, wait_until="commit", timeout=20000)
+            except Exception as e:
+                browser.close()
+                raise RuntimeError(f"Could not load {url}: {e}") from e
         main_text = _clean_text(page.inner_text("body"))
         result["pages"].append({"url": url, "text": main_text})
 

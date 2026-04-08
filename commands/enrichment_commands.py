@@ -19,7 +19,8 @@ def enrich_company(db: Session, company_id: int) -> Company:
     scraped = scrape_website(company.website, company_id=company_id)
 
     # 2. Combine all page text for AI extraction
-    combined_text = "\n\n".join(p["text"] for p in scraped["pages"])
+    combined_text = f"Company website: {company.website}\n\n"
+    combined_text += "\n\n".join(p["text"] for p in scraped["pages"])
     combined_text = combined_text[:15000]  # truncate to avoid token limits
 
     # 3. Extract structured info via AI
@@ -34,6 +35,8 @@ def enrich_company(db: Session, company_id: int) -> Company:
         company.country = extracted["country"]
     if extracted.get("founded_year"):
         company.founded_year = extracted["founded_year"]
+    if extracted.get("website"):
+        company.website = extracted["website"]
     company.scraped_data_path = scraped.get("saved_path")
 
     # 5. Add products (skip duplicates by name)
@@ -52,7 +55,8 @@ def enrich_company(db: Session, company_id: int) -> Company:
                 Person(
                     name=person["name"],
                     title=person.get("title", "Unknown"),
-                    email=person.get("email", f"{person['name'].split()[0].lower()}@example.com"),
+                    email=person.get("email") or "unknown",
+                    linkedin_url=person.get("linkedin_url"),
                     role_type=person.get("role_type"),
                 )
             )
